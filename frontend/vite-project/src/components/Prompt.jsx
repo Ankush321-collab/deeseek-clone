@@ -6,49 +6,66 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow as codeTheme } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { v4 as uuidv4 } from 'uuid';
 
-function Promt() {
+function Prompt({ activeConversationId, setActiveConversationId, conversations, setConversations }) {
   const [inputValue, setInputValue] = useState("");
   const [typeMessage, setTypeMessage] = useState("");
-
-  const [promt, setPromt] = useState([]);
   const [loading, setLoading] = useState(false);
   const promtEndRef = useRef();
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      const storedPromt = localStorage.getItem(`promtHistory_${user._id}`);
-      if (storedPromt) {
-        setPromt(JSON.parse(storedPromt));
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      localStorage.setItem(`promtHistory_${user._id}`, JSON.stringify(promt));
-    }
-  }, [promt]);
+  // Find the active conversation
+  const activeIdx = conversations.findIndex(c => c.id === activeConversationId);
+  const activeConversation = activeIdx !== -1 ? conversations[activeIdx] : null;
+  const visiblePromt = activeConversation ? activeConversation.messages : [];
 
   useEffect(() => {
     promtEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [promt, loading]);
+  }, [conversations, activeConversationId, loading]);
 
-  const handleSend = async () => {
+  const handleSend = async (e) => {
+    if (e) e.preventDefault();
     const trimmed = inputValue.trim();
     if (!trimmed) return;
-
     setInputValue("");
     setTypeMessage(trimmed);
     setLoading(true);
 
+    // If no active conversation, create one
+    let convId = activeConversationId;
+    let newConversations = [...conversations];
+    let convIdx = activeIdx;
+    if (!activeConversation) {
+      convId = uuidv4();
+      const newConv = {
+        id: convId,
+        createdAt: Date.now(),
+        title: trimmed,
+        messages: [],
+      };
+      newConversations = [newConv, ...conversations];
+      convIdx = 0;
+      setActiveConversationId(convId);
+    }
+
+    // Add user message
+    const userMsg = {
+      id: uuidv4(),
+      role: "user",
+      content: trimmed,
+      timestamp: Date.now(),
+    };
+    newConversations[convIdx].messages = [...newConversations[convIdx].messages, userMsg];
+    // Set title if not set
+    if (!newConversations[convIdx].title) {
+      newConversations[convIdx].title = trimmed;
+    }
+    setConversations(newConversations);
+
     try {
       const token = localStorage.getItem("token");
-
       const { data } = await axios.post(
-        "http://localhost:4002/api/v1/deepseekai/promt",
+        "http://localhost:5000/api/prompt",
         { content: trimmed },
         {
           headers: {
@@ -57,30 +74,33 @@ function Promt() {
           withCredentials: true,
         }
       );
-
-      setPromt((prev) => [
-        ...prev,
-        { role: "user", content: trimmed },
-        { role: "assistant", content: data.reply },
-      ]);
+      const assistantMsg = {
+        id: uuidv4(),
+        role: "assistant",
+        content: data.reply || "❌ No reply from server.",
+        timestamp: Date.now(),
+      };
+      newConversations[convIdx].messages = [
+        ...newConversations[convIdx].messages,
+        assistantMsg,
+      ];
+      setConversations(newConversations);
     } catch (error) {
-      console.error("API Error:", error);
-      setPromt((prev) => [
-        ...prev,
-        { role: "user", content: trimmed },
-        {
-          role: "assistant",
-          content: "❌ Something went wrong with the AI response.",
-        },
-      ]);
+      const assistantMsg = {
+        id: uuidv4(),
+        role: "assistant",
+        content: "❌ Something went wrong with the AI response.",
+        timestamp: Date.now(),
+      };
+      newConversations[convIdx].messages = [
+        ...newConversations[convIdx].messages,
+        assistantMsg,
+      ];
+      setConversations(newConversations);
     } finally {
       setLoading(false);
       setTypeMessage(null);
     }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSend();
   };
 
   return (
@@ -100,7 +120,7 @@ function Promt() {
 
       {/* ➤ Scrollable Chat Box */}
       <div className="w-full max-w-4xl flex-1 overflow-y-auto mt-6 mb-4 space-y-4 max-h-[60vh] px-1">
-        {promt.map((msg, index) => (
+        {visiblePromt.map((msg, index) => (
           <div
             key={index}
             className={`w-full flex ${
@@ -147,8 +167,6 @@ function Promt() {
             )}
           </div>
         ))}
-
-        {/* Show user's prompt while loading */}
         {loading && typeMessage && (
           <div
             className="whitespace-pre-wrap px-4 py-3 rounded-2xl text-sm break-words
@@ -157,8 +175,6 @@ function Promt() {
             {typeMessage}
           </div>
         )}
-
-        {/* 🤖 Typing Indicator */}
         {loading && (
           <div className="flex justify-start w-full">
             <div className="bg-[#2f2f2f] text-white px-4 py-3 rounded-xl text-sm animate-pulse">
@@ -166,52 +182,49 @@ function Promt() {
             </div>
           </div>
         )}
-
         <div ref={promtEndRef} />
       </div>
-
       {/* ➤ Input Box */}
       <div className="w-full max-w-4xl relative mt-auto">
         <div className="bg-[#2f2f2f] rounded-[2rem] px-4 md:px-6 py-6 md:py-8 shadow-md">
-          <input
-            type="text"
-            placeholder="💬 Message DeepSeek"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="bg-transparent w-full text-white placeholder-gray-400 text-base md:text-lg outline-none"
-          />
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-4">
-            {/* 🛠️ Functional Buttons */}
-            <div className="flex gap-2 flex-wrap">
-              <button className="flex items-center gap-2 border border-gray-500 text-white text-sm md:text-base px-3 py-1.5 rounded-full hover:bg-gray-600 transition">
-                <Bot className="w-4 h-4" />
-                DeepThink (R1)
-              </button>
-              <button className="flex items-center gap-2 border border-gray-500 text-white text-sm md:text-base px-3 py-1.5 rounded-full hover:bg-gray-600 transition">
-                <Globe className="w-4 h-4" />
-                Search
-              </button>
+          <form onSubmit={handleSend} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="💬 Message DeepSeek"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="bg-transparent w-full text-white placeholder-gray-400 text-base md:text-lg outline-none"
+            />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* 🛠️ Functional Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <button type="button" className="flex items-center gap-2 border border-gray-500 text-white text-sm md:text-base px-3 py-1.5 rounded-full hover:bg-gray-600 transition">
+                  <Bot className="w-4 h-4" />
+                  DeepThink (R1)
+                </button>
+                <button type="button" className="flex items-center gap-2 border border-gray-500 text-white text-sm md:text-base px-3 py-1.5 rounded-full hover:bg-gray-600 transition">
+                  <Globe className="w-4 h-4" />
+                  Search
+                </button>
+              </div>
+              {/* ➤ Send Button */}
+              <div className="flex items-center gap-2 ml-auto">
+                <button type="button" className="text-gray-400 hover:text-white transition">
+                  <Paperclip className="w-5 h-5" />
+                </button>
+                <button
+                  type="submit"
+                  className="bg-gray-500 hover:bg-blue-600 p-2 rounded-full text-white transition"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-
-            {/* ➤ Send Button */}
-            <div className="flex items-center gap-2 ml-auto">
-              <button className="text-gray-400 hover:text-white transition">
-                <Paperclip className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleSend}
-                className="bg-gray-500 hover:bg-blue-600 p-2 rounded-full text-white transition"
-              >
-                <ArrowUp className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
   );
 }
 
-export default Promt;
+export default Prompt;

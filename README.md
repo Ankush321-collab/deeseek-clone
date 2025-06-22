@@ -1,4 +1,4 @@
-# 💻 Deepseek Backend API
+# 💻 Deepseek Backend/Frontend API
 
 This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **JWT authentication**, and **bcrypt** for password hashing.
 
@@ -14,6 +14,7 @@ This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **
 ---
 
 ## 📁 Project Structure
+```
 
 
 backend/
@@ -27,20 +28,23 @@ backend/
 ├── .env
 ├── server.js
 └── package.json
-
+```
 
 
 
 ---
 
-## 🔐 Environment Variables
+📁 Environment Variables Setup (.env)
+Create a .env file in the root of your backend project with the following structure:
+```
 
-Create a `.env` file inside the `backend/` directory with the following content:
-
+PORT=5000 or you local host
 MONGO_URL=your_mongodb_connection_string
-PORT=5000
-JWT_SECRET=your_super_secret_key
-
+JWT_SECRET=your_jwt_secret_key
+NODE_ENV=development
+GITHUB_TOKEN=your_github_token
+FRONTEND_URL=http://localhost:5173
+```
 
 
 ---
@@ -52,13 +56,25 @@ cd backend
 npm install
 npm start
 
+for fronted
+cd frontend
+npm i
+npm run dev
+```
+
 
 
 📡 API Endpoints
+#
+```
 📝 Signup
 POST /api/signup
+post /api/login
+post /api/prompt
 Body:
+```
 
+```
 json
 Copy code
 {
@@ -84,7 +100,10 @@ Copy code
 {
   "token": "your_jwt_token"
 }
+```
 📝 Notes
+###
+```
 Passwords are securely hashed using bcrypt
 
 JWT secret is loaded from .env via config.js
@@ -97,6 +116,7 @@ Copy code
 ---
 
 Just paste the above content into your `README.md` file in the GitHub repository. Let me know if you want to include curl commands or Postman collection links too.
+```
 
 
 

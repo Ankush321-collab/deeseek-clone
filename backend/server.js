@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const userRoutes = require("./routes/user.routes");
 const promptroutes=require('./routes/prompt.routes')
 const cookieparser=require('cookie-parser')
+const cors=require('cors')
 
 dotenv.config();
 
@@ -15,6 +16,15 @@ app.use(express.json());
 
 //cookie parsing
 app.use(cookieparser());
+
+//cookieparser
+app.use(cors(
+  {
+  origin:process.env.FRONTEND_URL,
+  credentials:true,
+  methods:["GET","POST"],
+  allowedHeaders:["Content-Type","Authorization"],
+}));
 
 // Error handler for invalid JSON
 app.use((err, req, res, next) => {

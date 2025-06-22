@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import cookies from 'js-cookie'
 
 export const AuthContext = createContext();
 
@@ -8,7 +9,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [authUser, setAuthUser] = useState(
-        JSON.parse(localStorage.getItem("user")) || null
+        JSON.parse(localStorage.getItem("user")) || cookies.get("jwt")||null
     );
 
     return (
