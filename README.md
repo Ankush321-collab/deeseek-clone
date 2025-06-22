@@ -55,14 +55,21 @@ FRONTEND_URL=http://localhost:5173
 cd backend
 npm install
 npm start
+```
 
 
 
 📡 API Endpoints
+#
+```
 📝 Signup
 POST /api/signup
+post /api/login
+post /api/prompt
 Body:
+```
 
+```
 json
 Copy code
 {
@@ -88,7 +95,10 @@ Copy code
 {
   "token": "your_jwt_token"
 }
+```
 📝 Notes
+###
+```
 Passwords are securely hashed using bcrypt
 
 JWT secret is loaded from .env via config.js
@@ -101,6 +111,7 @@ Copy code
 ---
 
 Just paste the above content into your `README.md` file in the GitHub repository. Let me know if you want to include curl commands or Postman collection links too.
+```
 
 
 
