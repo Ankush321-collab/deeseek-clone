@@ -14,6 +14,7 @@ This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **
 ---
 
 ## 📁 Project Structure
+```
 
 
 backend/
@@ -27,20 +28,23 @@ backend/
 ├── .env
 ├── server.js
 └── package.json
-
+```
 
 
 
 ---
 
-## 🔐 Environment Variables
+📁 Environment Variables Setup (.env)
+Create a .env file in the root of your backend project with the following structure:
+```
 
-Create a `.env` file inside the `backend/` directory with the following content:
-
+PORT=5000 or you local host
 MONGO_URL=your_mongodb_connection_string
-PORT=5000
-JWT_SECRET=your_super_secret_key
-
+JWT_SECRET=your_jwt_secret_key
+NODE_ENV=development
+GITHUB_TOKEN=your_github_token
+FRONTEND_URL=http://localhost:5173
+```
 
 
 ---
