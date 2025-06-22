@@ -1,4 +1,4 @@
-# 💻 Deepseek Backend API
+# 💻 Deepseek Backend/Frontend API
 
 This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **JWT authentication**, and **bcrypt** for password hashing.
 
@@ -55,6 +55,11 @@ FRONTEND_URL=http://localhost:5173
 cd backend
 npm install
 npm start
+
+for fronted
+cd frontend
+npm i
+npm run dev
 ```
 
 
