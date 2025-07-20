@@ -1,4 +1,4 @@
-# 💻 Deepseek Backend/Frontend API
+# 💻 Deepseek Chat_Application
 
 This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **JWT authentication**, and **bcrypt** for password hashing.
 
