@@ -1,4 +1,5 @@
-# 💻 Deepseek Backend/Frontend API
+# 💻 Deepseek Chat_Application
+AWS URL=http://deepseek-frontend-deployed.s3-website.ap-south-2.amazonaws.com/
 
 This is a Node.js backend API built with **Express**, **MongoDB (Mongoose)**, **JWT authentication**, and **bcrypt** for password hashing.
 
